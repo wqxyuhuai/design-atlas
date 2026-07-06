@@ -366,21 +366,21 @@ const CURVED_VERTEX_SHADER = `
     float direction = normalized < 0.0 ? -1.0 : 1.0;
 
     vec3 transformed = position;
-    float speed = clamp(uSpeedY * 0.54, -1.55, 1.55);
+    float speed = clamp(uSpeedY * 0.72, -2.0, 2.0);
     float bendScale = uBendStrength / 34.0;
-    float verticalWave = sin((uv.y + 0.08) * 2.18) * 0.42;
+    float verticalWave = sin((uv.y + 0.08) * 2.0) * 0.4;
     float scrollBend = verticalWave * speed * bendScale;
     float centerWeight = 1.0 - smoothstep(0.0, 0.58, absNormalized);
     float faceProgress = smoothstep(0.05, 1.0, absNormalized);
     float yaw = direction * mix(PI * 0.47, PI * 0.08, faceProgress);
 
-    yaw += scrollBend * 0.16 * (0.75 - absNormalized * 0.28);
-    transformed.z -= scrollBend * 0.62;
+    yaw += scrollBend * 0.05 * (0.75 - absNormalized * 0.28);
+    transformed.z -= scrollBend * 0.92;
 
     transformed = rotateY(yaw) * transformed;
 
     transformed.x += normalized * uRowWidth + uPointerX * 0.08;
-    transformed.y += -0.84;
+    transformed.y += 0.0;
     transformed.z += -absNormalized * uCurveDepth * 0.006 - centerWeight * 0.12;
 
     vec4 modelPosition = modelMatrix * instanceMatrix * vec4(transformed, 1.0);
@@ -570,7 +570,7 @@ function CurvedWebGLGallery({
     const motion = motionRef.current;
     const ease = 1 - Math.exp(-delta * 8.4);
     motion.current = THREE.MathUtils.lerp(motion.current, motion.target, ease);
-    motion.speed *= Math.exp(-delta * 5.8);
+    motion.speed *= Math.exp(-delta * 4.8);
 
     material.uniforms.uScrollY.value = motion.current;
     material.uniforms.uSpeedY.value = motion.speed;
@@ -1241,21 +1241,6 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
               />
             </Suspense>
           </Canvas>
-        </div>
-        <div className="notion-rb-media-copy">
-          <span>Design Atlas magazine</span>
-          <strong>Collected covers in motion.</strong>
-        </div>
-        <div className="notion-rb-curved-header">
-          <span>Digital research</span>
-          <span>Archive</span>
-          <span>Motion index</span>
-          <span>Studio notes</span>
-        </div>
-        <div className="notion-rb-curved-footer">
-          <span>2026</span>
-          <span>W27</span>
-          <span>M07</span>
         </div>
       </div>
     );
