@@ -28,8 +28,11 @@ function parseArgs(argv) {
     selector: DEFAULT_CLIP_SELECTOR,
     clip: DEFAULT_CLIP_SELECTOR,
     deviceScaleFactor: 1,
+    wheel: 0,
+    wheelWait: 420,
   };
   const positionals = [];
+  let hasCustomOutput = false;
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -46,6 +49,7 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === "--output" && next) {
       options.output = next;
+      hasCustomOutput = true;
       index += 1;
     } else if (arg === "--width" && next) {
       options.width = Number(next);
@@ -65,6 +69,12 @@ function parseArgs(argv) {
     } else if (arg === "--device-scale-factor" && next) {
       options.deviceScaleFactor = Number(next);
       index += 1;
+    } else if (arg === "--wheel" && next) {
+      options.wheel = Number(next);
+      index += 1;
+    } else if (arg === "--wheel-wait" && next) {
+      options.wheelWait = Number(next);
+      index += 1;
     } else if (arg === "--help" || arg === "-h") {
       options.help = true;
     } else if (!arg.startsWith("--")) {
@@ -74,6 +84,7 @@ function parseArgs(argv) {
 
   if (positionals[0]) {
     options.output = positionals[0];
+    hasCustomOutput = true;
   }
 
   if (positionals[1] && Number.isFinite(Number(positionals[1]))) {
@@ -82,7 +93,9 @@ function parseArgs(argv) {
 
   if (options.category && options.slug) {
     options.url = `http://127.0.0.1:5173/workbench/${options.category}/${options.slug}?tab=preview&renderer=${options.slug}`;
-    options.output = `artifacts/effect-screenshots/${options.slug}.png`;
+    if (!hasCustomOutput) {
+      options.output = `artifacts/effect-screenshots/${options.slug}.png`;
+    }
     options.selector = ".notion-rb-media-stage, .notion-rb-preview";
     options.clip = ".notion-rb-media-stage";
   }
@@ -105,6 +118,8 @@ Options:
   --selector <css>               Selector that must exist before capture.
   --clip <css|none>              Capture this element instead of the full viewport.
   --device-scale-factor <n>      Device scale factor. Default: 1
+  --wheel <deltaY>               Dispatch a wheel event before capture.
+  --wheel-wait <ms>              Wait after the wheel event. Default: 420
 
 Default target:
   ${DEFAULT_URL}
@@ -359,6 +374,33 @@ async function getClip(client, sessionId, selector) {
   return clip;
 }
 
+async function dispatchWheel(client, sessionId, selector, deltaY) {
+  if (!deltaY) {
+    return;
+  }
+
+  await client.send(
+    "Runtime.evaluate",
+    {
+      expression: `(() => {
+        const element = document.querySelector(${JSON.stringify(selector || "body")}) || document.body;
+        const rect = element.getBoundingClientRect();
+        const event = new WheelEvent("wheel", {
+          bubbles: true,
+          cancelable: true,
+          deltaY: ${JSON.stringify(deltaY)},
+          clientX: rect.left + rect.width / 2,
+          clientY: rect.top + rect.height / 2
+        });
+        element.dispatchEvent(event);
+        return true;
+      })()`,
+      returnByValue: true,
+    },
+    sessionId,
+  );
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   if (options.help) {
@@ -434,6 +476,10 @@ async function main() {
     await waitForSelector(client, sessionId, options.selector);
     await waitForFonts(client, sessionId);
     await delay(options.wait);
+    await dispatchWheel(client, sessionId, options.clip || options.selector, options.wheel);
+    if (options.wheel) {
+      await delay(options.wheelWait);
+    }
 
     const clip = await getClip(client, sessionId, options.clip);
     const screenshot = await client.send(
