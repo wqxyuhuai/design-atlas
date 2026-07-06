@@ -1,0 +1,1 @@
+export { pixelBlastEffect } from "./meta";

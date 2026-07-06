@@ -19,7 +19,7 @@ Design Atlas is a local design effect library for collecting, inspecting, prompt
 src/
   app/                  Router and app shell
   components/           Shared UI, gallery, layout, sidebar, workbench panels
-  content/effects/      Implemented effect components and source notes
+  content/effects/      Category-first effect folders: <category>/<slug>/
   content/inspiration/  Temporary inspiration references
   data/
     categories.ts       Fixed category definitions
@@ -31,7 +31,7 @@ src/
   utils/                Filtering, copy, prompt, route, and parameter helpers
 
 public/
-  effects/              Suggested screenshot location by category
+  effects/              Effect assets: <category>/<slug>/
   fonts/
 ```
 
@@ -45,6 +45,7 @@ type EffectCategory =
   | "text"
   | "navigation"
   | "media"
+  | "video-browser"
   | "components"
   | "layouts"
   | "interactions"
@@ -93,37 +94,41 @@ public/effects/backgrounds/grid-glow/
 src/content/effects/backgrounds/grid-glow/
 ```
 
-2. Save screenshots or reference assets under the matching public folder:
+2. Keep the effect self-contained. The required final shape is:
+
+```text
+src/content/effects/<category>/<slug>/
+  meta.ts
+  index.ts
+  Component.tsx          # implemented effects
+  Component.css          # when needed
+  code.ts                # optional source-code bundle
+  prompt.ts|prompt.md
+  notes.ts|notes.md
+  source.ts|source.md
+```
+
+Do not add final effects under legacy folders such as `text-effects`, `image-lists`, or batch folders such as `notion-inbox`. See `docs/EFFECT_STRUCTURE.md`.
+
+3. Save screenshots or reference assets under the matching public folder:
 
 ```text
 public/effects/backgrounds/grid-glow/screenshot.jpg
 ```
 
-3. Add the generated record to the matching category file, for example `src/data/effects/backgrounds.ts`:
+4. Fill `src/content/effects/backgrounds/grid-glow/meta.ts`, then import it from the matching category index, for example `src/data/effects/backgrounds.ts`:
 
 ```ts
-{
-  id: "grid-glow",
-  slug: "grid-glow",
-  title: "Grid Glow",
-  category: "backgrounds",
-  type: "Grid Glow",
-  status: "reference",
-  description: "A dark grid background with subtle glow and ambient depth.",
-  tags: ["grid", "dark", "hero", "glow"],
-  useCases: ["Hero background", "Section background", "Tech website"],
-  sourceUrl: "https://example.com",
-  screenshot: "/effects/backgrounds/grid-glow.jpg",
-  note: "Good for low-brightness hero sections. Keep the glow restrained.",
-  prompt: "Recreate a dark grid glow background with subtle ambient depth..."
-}
+import { gridGlowEffect } from "../../content/effects/backgrounds/grid-glow";
+
+export const backgroundEffects = [gridGlowEffect];
 ```
 
-4. The effect appears automatically in its category and type filter.
-5. Open `/workbench/backgrounds/grid-glow` to inspect the detail page.
-6. Use `Copy Prompt` for Codex or another AI tool.
-7. If the effect later becomes reusable, change `status` to `implemented` and add `reusable`, `parameters`, and optional live preview/code fields.
-8. Run the verification flow:
+5. The effect appears automatically in its category and type filter.
+6. Open `/workbench/backgrounds/grid-glow` to inspect the detail page.
+7. Use `Copy Prompt` for Codex or another AI tool.
+8. If the effect later becomes reusable, change `status` to `implemented` and add `reusable`, `parameters`, and optional live preview/code fields.
+9. Run the verification flow:
 
 ```bash
 npm run verify-effect -- backgrounds/grid-glow

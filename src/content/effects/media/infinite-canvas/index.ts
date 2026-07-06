@@ -1,0 +1,1 @@
+export { infiniteCanvasEffect } from "./meta";

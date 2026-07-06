@@ -17,7 +17,19 @@ npm run lint
 npm run build
 ```
 
-The verify script checks that the category file exists, the slug is present in `src`, and optional asset or source-note folders are in place.
+The verify script checks that the category file exists, the effect has a final folder at `src/content/effects/<category>/<slug>/`, that folder contains `meta.ts`, the slug is registered in source, and optional assets live under `public/effects/<category>/<slug>/`.
+
+## Structure Checks
+
+Final effects must follow:
+
+```text
+src/content/effects/<category>/<slug>/meta.ts
+src/content/effects/<category>/<slug>/index.ts
+public/effects/<category>/<slug>/
+```
+
+Do not ship final effects from `text-effects`, `image-lists`, `notion-inbox`, or other batch/legacy folders. Legacy URL aliases can stay in code for compatibility, but final source folders must use the normalized category names from `src/data/categories.ts`.
 
 ## Browser Checks
 

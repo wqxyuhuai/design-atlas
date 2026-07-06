@@ -1,0 +1,88 @@
+.pacome-gallery {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+  cursor: grab;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.045) 1px, transparent 1px),
+    #050607;
+  background-size: 72px 72px;
+  animation: pacome-gallery-fade-in 900ms ease-out both;
+}
+
+.pacome-gallery.is-dragging {
+  cursor: grabbing;
+}
+
+.pacome-gallery__canvas {
+  position: fixed;
+  inset: 0;
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+.pacome-gallery__mode-toggle {
+  position: fixed;
+  top: 42px;
+  left: 50%;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  transform: translateX(-50%);
+  animation: pacome-gallery-ui-in 850ms 180ms ease-out both;
+}
+
+.pacome-gallery__mode-toggle button {
+  padding: 0;
+  color: rgb(255 255 255 / 0.48);
+  letter-spacing: 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  transition: color 220ms ease;
+}
+
+.pacome-gallery__mode-toggle button.is-active {
+  color: rgb(255 255 255);
+}
+
+.pacome-gallery__dot {
+  width: 6px;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.9);
+}
+
+@keyframes pacome-gallery-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes pacome-gallery-ui-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+}
+
+@media (max-width: 767px) {
+  .pacome-gallery {
+    background-size: 58px 58px;
+  }
+
+  .pacome-gallery__mode-toggle {
+    top: 28px;
+    font-size: 12px;
+  }
+}

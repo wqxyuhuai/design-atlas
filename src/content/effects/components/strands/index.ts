@@ -1,0 +1,1 @@
+export { strandsEffect } from "./meta";

@@ -2,7 +2,7 @@
 import { access, readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 
-const categories = ["backgrounds", "text", "navigation", "media", "components", "layouts", "interactions", "tools"];
+const categories = ["backgrounds", "text", "navigation", "media", "video-browser", "components", "layouts", "interactions", "tools"];
 
 function printHelp() {
   console.log(`Verify a Design Atlas effect entry.
@@ -105,8 +105,15 @@ async function main() {
   const categoryFile = path.join(cwd, "src", "data", "effects", `${options.category}.ts`);
   const publicDir = path.join(cwd, "public", "effects", options.category, options.slug);
   const contentDir = path.join(cwd, "src", "content", "effects", options.category, options.slug);
+  const metaFile = path.join(contentDir, "meta.ts");
+  const indexFile = path.join(contentDir, "index.ts");
   const sourceFiles = await scanFiles(path.join(cwd, "src"), [".ts", ".tsx"]);
   const slugNeedles = [`slug: "${options.slug}"`, `slug: '${options.slug}'`, `slug: \`${options.slug}\``];
+  const categoryNeedles = [
+    `category: "${options.category}"`,
+    `category: '${options.category}'`,
+    `category: \`${options.category}\``
+  ];
 
   const checks = [];
   checks.push({
@@ -115,19 +122,36 @@ async function main() {
   });
 
   checks.push({
-    label: "Slug is present in src data or content files",
-    pass: (await Promise.all(sourceFiles.map((file) => fileContains(file, slugNeedles)))).some(Boolean)
+    label: `Final effect folder exists: src/content/effects/${options.category}/${options.slug}`,
+    pass: await exists(contentDir)
+  });
+
+  checks.push({
+    label: `Effect meta exists: src/content/effects/${options.category}/${options.slug}/meta.ts`,
+    pass: await exists(metaFile)
+  });
+
+  checks.push({
+    label: `Effect index exists: src/content/effects/${options.category}/${options.slug}/index.ts`,
+    pass: await exists(indexFile),
+    optional: true
+  });
+
+  checks.push({
+    label: "Slug is present in meta.ts or src data/content files",
+    pass:
+      ((await exists(metaFile)) && (await fileContains(metaFile, slugNeedles))) ||
+      (await Promise.all(sourceFiles.map((file) => fileContains(file, slugNeedles)))).some(Boolean)
+  });
+
+  checks.push({
+    label: "meta.ts category matches the parent folder",
+    pass: (await exists(metaFile)) ? await fileContains(metaFile, categoryNeedles) : false
   });
 
   checks.push({
     label: `Public asset folder exists: public/effects/${options.category}/${options.slug}`,
     pass: await exists(publicDir),
-    optional: true
-  });
-
-  checks.push({
-    label: `Content note folder exists: src/content/effects/${options.category}/${options.slug}`,
-    pass: await exists(contentDir),
     optional: true
   });
 

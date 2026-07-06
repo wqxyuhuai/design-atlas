@@ -1,0 +1,1 @@
+export { splashCursorEffect } from "./meta";

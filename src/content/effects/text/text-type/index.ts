@@ -1,0 +1,1 @@
+export { textTypeEffect } from "./meta";

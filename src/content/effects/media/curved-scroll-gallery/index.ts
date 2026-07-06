@@ -1,0 +1,1 @@
+export { curvedScrollGalleryEffect } from "./meta";

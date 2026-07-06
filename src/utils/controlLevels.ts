@@ -78,6 +78,16 @@ const categoryControlOrder: Record<EffectCategory, string[]> = {
     "transitionDuration",
     "metaPosition"
   ],
+  "video-browser": [
+    "mutedDefault",
+    "duration",
+    "spriteFrameCount",
+    "spriteColumns",
+    "spriteRows",
+    "autoplay",
+    "showCloud",
+    "dimAfter"
+  ],
   components: [
     "variant",
     "size",

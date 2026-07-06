@@ -1,0 +1,1 @@
+export { beamsEffect } from "./meta";

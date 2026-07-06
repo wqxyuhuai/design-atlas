@@ -1,0 +1,1 @@
+export { liquidTypographyLinkEffect } from "./meta";

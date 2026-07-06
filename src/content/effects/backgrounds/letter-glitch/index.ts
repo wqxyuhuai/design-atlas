@@ -1,0 +1,1 @@
+export { letterGlitchEffect } from "./meta";

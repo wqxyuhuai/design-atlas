@@ -5,6 +5,7 @@ export type EffectCategory =
   | "text"
   | "navigation"
   | "media"
+  | "video-browser"
   | "components"
   | "layouts"
   | "interactions"

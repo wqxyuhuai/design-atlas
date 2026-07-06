@@ -1,0 +1,1 @@
+export { magnetLinesEffect } from "./meta";

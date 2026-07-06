@@ -3,12 +3,14 @@ import { App } from "./App";
 import { HomePage } from "../pages/HomePage";
 import { InspirationPage } from "../pages/InspirationPage";
 import { NotFoundPage } from "../pages/NotFoundPage";
+import { PacomeGalleryDemoPage } from "../pages/PacomeGalleryDemoPage";
 import { WorkbenchPage } from "../pages/WorkbenchPage";
 import { firstEffectByCategory } from "../registry/getEffect";
 
 const defaultEffect = firstEffectByCategory("backgrounds");
 
 export const router = createBrowserRouter([
+  { path: "/pacome-gallery-demo", element: <PacomeGalleryDemoPage /> },
   {
     path: "/",
     element: <App />,

@@ -1,0 +1,1 @@
+export { lightRaysEffect } from "./meta";

@@ -2,7 +2,7 @@
 import { access, mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const categories = ["backgrounds", "text", "navigation", "media", "components", "layouts", "interactions", "tools"];
+const categories = ["backgrounds", "text", "navigation", "media", "video-browser", "components", "layouts", "interactions", "tools"];
 const statuses = ["reference", "draft", "implemented"];
 
 function printHelp() {
@@ -103,7 +103,9 @@ function effectSnippet({ category, slug, title, type, status, source }) {
   const variableName = `${camelCaseSlug(slug)}Effect`;
   const sourceLine = source ? `  sourceUrl: "${source}",\n` : "";
 
-  return `const ${variableName}: DesignEffect = {
+  return `import type { DesignEffect } from "../../../../types/effect";
+
+export const ${variableName}: DesignEffect = {
   id: "${slug}",
   slug: "${slug}",
   title: "${title}",
@@ -117,6 +119,10 @@ ${sourceLine}  screenshot: "/effects/${category}/${slug}/screenshot.jpg",
   note: "Capture what is worth preserving and what should be avoided.",
   prompt: "Recreate ${title} as a reusable web design effect."
 };`;
+}
+
+function indexSnippet({ slug }) {
+  return `export { ${camelCaseSlug(slug)}Effect } from "./meta";\n`;
 }
 
 async function main() {
@@ -147,6 +153,8 @@ async function main() {
 
   const files = [
     [path.join(publicDir, ".gitkeep"), ""],
+    [path.join(contentDir, "meta.ts"), `${effectSnippet({ ...options, title, type })}\n`],
+    [path.join(contentDir, "index.ts"), indexSnippet(options)],
     [
       path.join(contentDir, "prompt.md"),
       `# ${title} Prompt\n\nRecreate ${title} as a reusable web design effect.\n\n## Must Preserve\n\n- \n\n## Avoid\n\n- \n`
@@ -169,9 +177,9 @@ async function main() {
   if (written.length) console.log(`Written:\n${written.map((file) => `  - ${file}`).join("\n")}`);
   if (skipped.length) console.log(`Already existed:\n${skipped.map((file) => `  - ${file}`).join("\n")}`);
   console.log("");
-  console.log(`Add this record to src/data/effects/${options.category}.ts:`);
+  console.log(`Add this import to src/data/effects/${options.category}.ts:`);
   console.log("");
-  console.log(effectSnippet({ ...options, title, type }));
+  console.log(`import { ${camelCaseSlug(options.slug)}Effect } from "../../content/effects/${options.category}/${options.slug}";`);
 }
 
 main().catch((error) => {

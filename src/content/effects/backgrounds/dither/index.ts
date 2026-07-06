@@ -1,0 +1,1 @@
+export { ditherEffect } from "./meta";

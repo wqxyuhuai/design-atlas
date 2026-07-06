@@ -1,0 +1,1 @@
+export { prismaticBurstEffect } from "./meta";

@@ -1,0 +1,1 @@
+export { variableProximityEffect } from "./meta";

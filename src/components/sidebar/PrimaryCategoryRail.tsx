@@ -3,6 +3,7 @@ import clsx from "clsx";
 import {
   CursorClick,
   DiamondsFour,
+  FilmSlate,
   ImagesSquare,
   NavigationArrow,
   SlidersHorizontal,
@@ -24,6 +25,7 @@ const categoryIcons = {
   text: TextAa,
   navigation: NavigationArrow,
   media: ImagesSquare,
+  "video-browser": FilmSlate,
   components: DiamondsFour,
   layouts: SquaresFour,
   interactions: CursorClick,

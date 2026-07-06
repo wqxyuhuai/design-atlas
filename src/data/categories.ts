@@ -28,6 +28,11 @@ export const categories: CategoryDefinition[] = [
     description: "Image lists, galleries, hover media systems, and visual presentation patterns."
   },
   {
+    slug: "video-browser",
+    label: "Video Browser",
+    description: "Custom project video covers, fullscreen players, cursor labels, and thumbnail timeline controls."
+  },
+  {
     slug: "components",
     label: "Components",
     description: "Reusable interface fragments, product cards, command surfaces, and UI modules."
@@ -52,6 +57,7 @@ export const categories: CategoryDefinition[] = [
 const categoryAliases: Record<string, EffectCategory> = {
   "text-effects": "text",
   "image-lists": "media",
+  video: "video-browser",
   "ui-components": "components"
 };
 

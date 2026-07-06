@@ -57,6 +57,7 @@ export function LivePreviewPanel({
   const [replayKey, setReplayKey] = useState(0);
   const Preview = effect.previewComponent;
   const isBackgroundEffect = effect.category === "backgrounds";
+  const isScrollablePreview = effect.category === "video-browser";
   const previewProps: EffectProps = isBackgroundEffect
     ? {
         ...values,
@@ -65,8 +66,8 @@ export function LivePreviewPanel({
     : values;
 
   return (
-    <section className="relative min-h-[420px] overflow-hidden rounded-[18px] bg-black">
-      <div className="absolute inset-0">
+    <section className={`relative min-h-[420px] overflow-hidden rounded-[18px] bg-black ${isScrollablePreview ? "md:min-h-[560px]" : ""}`}>
+      <div className={`absolute inset-0 ${isScrollablePreview ? "overflow-y-auto overscroll-contain" : ""}`}>
         {Preview ? (
           <Preview key={replayKey} {...(Object.keys(previewProps).length ? previewProps : defaultPropsForEffect(effect))} />
         ) : effect.screenshot ? (

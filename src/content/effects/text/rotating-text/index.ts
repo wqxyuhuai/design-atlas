@@ -1,0 +1,1 @@
+export { rotatingTextEffect } from "./meta";

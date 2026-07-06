@@ -1,0 +1,1 @@
+export { prismEffect } from "./meta";

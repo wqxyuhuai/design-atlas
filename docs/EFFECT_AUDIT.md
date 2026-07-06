@@ -76,7 +76,7 @@ Runtime evidence: a headless Chrome pass opened all 35 preview routes and all 35
 
 - What works: Embedded gallery preview loads and Code tab is available.
 - Fixed: Adapter source, prompt, notes, source, and license text now describe the custom embedded renderer.
-- Remaining issues: Implementation lives inside the shared NotionInboxPreview adapter.
+- Remaining issues: Preview orchestration still uses the shared imported-effect adapter, but the effect now has its own category/slug `meta.ts`.
 - Reusability rating: Good.
 - Recommended next step: Split into a standalone component only after confirming the desired gallery API.
 
@@ -339,7 +339,7 @@ Runtime evidence: a headless Chrome pass opened all 35 preview routes and all 35
 ## High-risk Issues Not Auto-fixed
 
 - Upstream licenses for ReactBits, Tympanus, and portfolio-inspired references were not verified. Entries now say "License not verified. Use as inspiration only" rather than inventing a license.
-- The Notion inbox batch still uses a shared `NotionInboxPreview` adapter. Splitting every imported effect into a standalone registry package would be a larger architecture change.
+- Imported reference effects now live under category/slug folders, with shared preview orchestration in `src/content/effects/_shared/NotionInboxPreview.tsx`. Fully extracting every embedded custom media renderer into standalone components remains a separate cleanup.
 - The production build still emits a large chunk warning because many WebGL, Three.js, OGL, motion, and raw source assets are bundled together. Code-splitting the effect library is a separate performance project.
 - Headless route checks confirm renderability and missing-section regressions, but they are not a substitute for human visual review on real mobile/desktop devices.
 

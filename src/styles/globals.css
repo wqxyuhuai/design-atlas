@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -455,7 +455,7 @@ button:disabled {
   }
 }
 
-.notion-inbox-preview {
+.imported-effect-preview {
   position: relative;
   display: grid;
   min-height: 100%;
@@ -468,7 +468,7 @@ button:disabled {
   isolation: isolate;
 }
 
-.notion-inbox-preview::before {
+.imported-effect-preview::before {
   content: "";
   position: absolute;
   inset: -25%;
@@ -479,7 +479,7 @@ button:disabled {
   opacity: 0.7;
 }
 
-.notion-inbox-preview-compact {
+.imported-effect-preview-compact {
   min-height: 260px;
 }
 
@@ -551,6 +551,7 @@ button:disabled {
 .notion-rb-orbit-gallery,
 .notion-rb-curved-scroll-gallery,
 .notion-rb-infinite-canvas,
+.notion-rb-spiral-showreel-gallery,
 .notion-rb-staggered-menu,
 .notion-rb-glass-surface,
 .notion-rb-fluid-glass,
@@ -581,6 +582,178 @@ button:disabled {
 .notion-rb-card .notion-rb-interaction-stage,
 .notion-rb-card .notion-rb-navigation-stage {
   min-height: 100%;
+}
+
+.notion-rb-spiral-showreel-stage {
+  display: block;
+  background: #080909;
+  color: #f5f5f7;
+  cursor: grab;
+  isolation: isolate;
+}
+
+.notion-rb-spiral-showreel-stage:active {
+  cursor: grabbing;
+}
+
+.notion-rb-spiral-showreel-canvas,
+.notion-rb-spiral-grid {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.notion-rb-spiral-showreel-canvas {
+  z-index: 2;
+}
+
+.notion-rb-spiral-grid {
+  z-index: 1;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, transparent 0 32%, rgb(0 0 0 / 0.38) 68%),
+    #080909;
+  background-size:
+    clamp(34px, 3.8cqw, 54px) clamp(34px, 3.8cqw, 54px),
+    clamp(34px, 3.8cqw, 54px) clamp(34px, 3.8cqw, 54px),
+    100% 100%,
+    100% 100%;
+}
+
+.notion-rb-spiral-logo,
+.notion-rb-spiral-switch,
+.notion-rb-spiral-menu,
+.notion-rb-spiral-showreel-card,
+.notion-rb-spiral-sound {
+  position: absolute;
+  z-index: 5;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.notion-rb-spiral-logo {
+  top: clamp(20px, 2.8cqw, 38px);
+  left: clamp(20px, 2.8cqw, 38px);
+  display: grid;
+  width: clamp(44px, 5.8cqw, 72px);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 68% 34%, rgb(245 245 247 / 0.86), transparent 14%),
+    radial-gradient(circle at 38% 68%, #b7d075, transparent 28%),
+    radial-gradient(circle at 28% 24%, #ebff8a, transparent 32%),
+    #0f1b12;
+  color: #081008;
+  font-size: clamp(0.78rem, 1.2cqw, 1rem);
+  box-shadow: 0 16px 46px rgb(0 0 0 / 0.38);
+}
+
+.notion-rb-spiral-switch {
+  top: clamp(22px, 3cqw, 42px);
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.2cqw, 18px);
+  transform: translateX(-50%);
+  font-size: clamp(0.85rem, 1.45cqw, 1.15rem);
+}
+
+.notion-rb-spiral-switch span {
+  width: 8px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.notion-rb-spiral-switch em {
+  color: rgb(245 245 247 / 0.42);
+  font-style: normal;
+}
+
+.notion-rb-spiral-menu {
+  top: clamp(20px, 2.8cqw, 38px);
+  right: clamp(20px, 2.8cqw, 38px);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: clamp(40px, 4.6cqw, 56px);
+  padding: 0 clamp(16px, 2.2cqw, 28px);
+  border-radius: 999px;
+  background: #f5f5f7;
+  color: #080909;
+  font-size: clamp(0.9rem, 1.55cqw, 1.16rem);
+}
+
+.notion-rb-spiral-menu span {
+  width: 7px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.notion-rb-spiral-showreel-card {
+  left: clamp(-80px, -6cqw, -24px);
+  bottom: clamp(-42px, -3.4cqw, -18px);
+  width: clamp(120px, 18cqw, 260px);
+  aspect-ratio: 16 / 9;
+  transform: rotate(-15deg);
+  transform-origin: 42% 54%;
+}
+
+.notion-rb-spiral-showreel-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: clamp(12px, 1.8cqw, 22px);
+  object-fit: cover;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.5);
+}
+
+.notion-rb-spiral-marquee {
+  position: absolute;
+  inset: -18px;
+  display: grid;
+  place-items: start;
+  color: #f5f5f7;
+  font-size: clamp(0.62rem, 1.1cqw, 1rem);
+  font-weight: 700;
+  line-height: 1;
+  text-transform: lowercase;
+  transform: rotate(22deg);
+  pointer-events: none;
+}
+
+.notion-rb-spiral-sound {
+  right: clamp(76px, 7cqw, 104px);
+  bottom: clamp(20px, 2.8cqw, 38px);
+  display: grid;
+  width: clamp(40px, 4.8cqw, 54px);
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  background: #f5f5f7;
+  color: #080909;
+  font-size: clamp(0.46rem, 0.72cqw, 0.62rem);
+}
+
+.notion-rb-card.notion-rb-spiral-showreel-gallery .notion-rb-spiral-logo,
+.notion-rb-card.notion-rb-spiral-showreel-gallery .notion-rb-spiral-sound {
+  display: none;
+}
+
+.notion-rb-card.notion-rb-spiral-showreel-gallery .notion-rb-spiral-switch,
+.notion-rb-card.notion-rb-spiral-showreel-gallery .notion-rb-spiral-menu {
+  top: 14px;
+  font-size: 0.7rem;
+}
+
+.notion-rb-card.notion-rb-spiral-showreel-gallery .notion-rb-spiral-menu {
+  min-height: 30px;
+  padding: 0 12px;
 }
 
 .notion-rb-flowing-menu-stage .menu__item-link,
@@ -1815,4 +1988,5 @@ button:disabled {
     scroll-behavior: auto !important;
   }
 }
+
 

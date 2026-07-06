@@ -1,0 +1,1 @@
+export { imageTrailEffect } from "./meta";

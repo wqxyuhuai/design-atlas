@@ -1,0 +1,1 @@
+export { textRevealEffect } from "./meta";

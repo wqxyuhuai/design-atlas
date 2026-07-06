@@ -1,0 +1,1 @@
+export { shinyTextEffect } from "./meta";

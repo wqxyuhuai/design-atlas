@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync } from "node:fs";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import {
   composeWebsiteDescription,
   composeWebsiteNote,
@@ -14,7 +13,7 @@ import {
   sourceNameFromUrl,
   websiteCategorySlugForNotionCategory
 } from "../src/lib/notion/effectInboxSchema.ts";
-import type { DesignEffect, EffectCategory } from "../src/types/effect.ts";
+import type { EffectCategory } from "../src/types/effect.ts";
 
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 type JsonObject = { [key: string]: JsonValue };
@@ -44,15 +43,7 @@ interface ParsedInboxPage {
   warnings: string[];
 }
 
-interface SyncResult {
-  page: ParsedInboxPage;
-  status: "success" | "skipped" | "failed";
-  reason: string;
-}
-
 const notionBaseUrl = "https://api.notion.com/v1";
-const generatedFile = path.resolve(process.cwd(), "src", "data", "effects", "notion-inbox.ts");
-const effectsRegistryFile = path.resolve(process.cwd(), "src", "data", "effects.ts");
 const localPathPattern =
   /(?:[A-Za-z]:[\\/][^\s"'<>]+|\\\\[^\s"'<>]+\\[^\s"'<>]+|(?:~|\.{1,2})[\\/][^\s"'<>]+|\/(?:Users|Volumes|home|mnt|var|tmp|opt)\/[^\s"'<>]+)/g;
 
@@ -60,11 +51,13 @@ function printHelp() {
   console.log(`Sync Notion Effect Inbox records into Design Atlas.
 
 Usage:
-  npm run effects:inbox:sync -- --write
+  npm run effects:inbox:sync
 
 Safety:
   Without --write, this script only prints what it would do.
-  With --write, it updates src/data/effects/notion-inbox.ts and marks successful Notion pages as 已新增.
+  Write mode is intentionally disabled after the per-effect folder migration.
+  Add synced effects with npm run new-effect -- <category> <slug> "<Title>" and place
+  the final record in src/content/effects/<category>/<slug>/meta.ts.
 `);
 }
 
@@ -298,151 +291,6 @@ async function parseInboxPage(page: NotionPage): Promise<ParsedInboxPage> {
   };
 }
 
-function effectFromPage(page: ParsedInboxPage, syncedAt: string): DesignEffect {
-  if (!page.category) {
-    throw new Error(`Cannot create effect without category: ${page.title || page.id}`);
-  }
-
-  const sourceName = sourceNameFromUrl(page.sourceUrl);
-  const sourceTag = slugify(sourceName);
-
-  return {
-    id: `notion-${page.slug}`,
-    slug: page.slug,
-    title: page.title,
-    type: page.title,
-    category: page.category,
-    status: "reference",
-    description: page.websiteDescription,
-    tags: ["notion-inbox", sourceTag].filter(Boolean),
-    useCases: ["Reference preview", "Implementation reference"],
-    sourceUrl: page.sourceUrl ?? undefined,
-    note: page.note,
-    prompt: `Recreate ${page.title} as a reusable web design effect for Design Atlas. Use the source reference and Notion inbox notes as implementation guidance.`,
-    createdAt: syncedAt,
-    updatedAt: syncedAt
-  };
-}
-
-async function loadExistingGeneratedEffects() {
-  if (!existsSync(generatedFile)) return [];
-  const moduleUrl = `${pathToFileURL(generatedFile).href}?t=${Date.now()}`;
-  const module = (await import(moduleUrl)) as { notionInboxEffects?: DesignEffect[] };
-  return module.notionInboxEffects ?? [];
-}
-
-async function collectExistingSlugs(directory: string, results = new Set<string>()) {
-  if (!existsSync(directory)) return results;
-  const entries = await readdir(directory, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const entryPath = path.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      await collectExistingSlugs(entryPath, results);
-      continue;
-    }
-
-    if (!entry.name.endsWith(".ts") && !entry.name.endsWith(".tsx")) continue;
-    if (path.resolve(entryPath) === generatedFile) continue;
-
-    const text = await readFile(entryPath, "utf8");
-    for (const match of text.matchAll(/slug:\s*["'`]([^"'`]+)["'`]/g)) {
-      results.add(match[1]);
-    }
-  }
-
-  return results;
-}
-
-async function writeGeneratedEffects(effects: DesignEffect[]) {
-  await mkdir(path.dirname(generatedFile), { recursive: true });
-
-  const content = `import type { DesignEffect } from "../../types/effect";
-
-export const notionInboxEffects: DesignEffect[] = ${JSON.stringify(effects, null, 2)};
-`;
-
-  await writeFile(generatedFile, content, "utf8");
-}
-
-async function ensureEffectsRegistryImport() {
-  let text = await readFile(effectsRegistryFile, "utf8");
-
-  if (!text.includes('import { notionInboxEffects } from "./effects/notion-inbox";')) {
-    text = text.replace(
-      'import { navigationEffects } from "./effects/navigation";\n',
-      'import { navigationEffects } from "./effects/navigation";\nimport { notionInboxEffects } from "./effects/notion-inbox";\n'
-    );
-  }
-
-  if (!text.includes("...notionInboxEffects")) {
-    text = text.replace("  ...toolEffects\n", "  ...toolEffects,\n  ...notionInboxEffects\n");
-  }
-
-  await writeFile(effectsRegistryFile, text, "utf8");
-}
-
-async function updateNotionSuccess(page: ParsedInboxPage, syncedAt: string) {
-  const shouldBackfillTitle = isPlaceholderEffectName(page.rawTitle) && Boolean(page.title);
-  const syncNote = shouldBackfillTitle
-    ? `Synced to Design Atlas as ${page.category}/${page.slug}. Backfilled Effect Name: ${page.title}.`
-    : `Synced to Design Atlas as ${page.category}/${page.slug}.`;
-
-  await notionRequest(`/pages/${page.id}`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      properties: {
-        ...(shouldBackfillTitle
-          ? {
-              [effectInboxSchema.fields.effectName.notionName]: {
-                title: [
-                  {
-                    type: "text",
-                    text: { content: page.title }
-                  }
-                ]
-              }
-            }
-          : {}),
-        [effectInboxSchema.fields.status.notionName]: {
-          status: { name: effectInboxSchema.statuses.synced }
-        },
-        [effectInboxSchema.fields.syncedAt.notionName]: {
-          date: { start: syncedAt }
-        },
-        [effectInboxSchema.fields.syncNote.notionName]: {
-          rich_text: [
-            {
-              type: "text",
-              text: {
-                content: syncNote
-              }
-            }
-          ]
-        }
-      }
-    })
-  });
-}
-
-async function updateNotionFailure(page: ParsedInboxPage, reason: string) {
-  await notionRequest(`/pages/${page.id}`, {
-    method: "PATCH",
-    body: JSON.stringify({
-      properties: {
-        [effectInboxSchema.fields.syncNote.notionName]: {
-          rich_text: [
-            {
-              type: "text",
-              text: { content: `Sync failed: ${reason}` }
-            }
-          ]
-        }
-      }
-    })
-  });
-}
-
 function printPlan(pages: ParsedInboxPage[]) {
   console.log(`Ready records: ${pages.length}`);
   for (const page of pages) {
@@ -463,7 +311,12 @@ async function main() {
     return;
   }
 
-  const syncedAt = new Date().toISOString();
+  if (options.write) {
+    throw new Error(
+      "Write mode is disabled because final effects must be created under src/content/effects/<category>/<slug>/. Use npm run new-effect and update the category index instead."
+    );
+  }
+
   const dataSourceId = await resolveDataSourceId();
   const pages = await queryReadyPages(dataSourceId);
   const parsedPages: ParsedInboxPage[] = [];
@@ -472,59 +325,7 @@ async function main() {
   }
 
   printPlan(parsedPages);
-  if (!options.write) {
-    console.log("Write mode: disabled. Re-run with --write to sync.");
-    return;
-  }
-
-  const existingGenerated = await loadExistingGeneratedEffects();
-  const existingExternalSlugs = await collectExistingSlugs(path.resolve(process.cwd(), "src"));
-  const generatedBySlug = new Map(existingGenerated.map((effect) => [`${effect.category}/${effect.slug}`, effect]));
-  const results: SyncResult[] = [];
-
-  for (const page of parsedPages) {
-    if (!page.category || !page.title || !page.slug) {
-      const reason = page.warnings.join("; ") || "Missing required title, slug, or category.";
-      results.push({ page, status: "failed", reason });
-      await updateNotionFailure(page, reason);
-      continue;
-    }
-
-    if (existingExternalSlugs.has(page.slug)) {
-      const reason = `Slug already exists outside generated inbox file: ${page.slug}`;
-      results.push({ page, status: "skipped", reason });
-      await updateNotionFailure(page, reason);
-      continue;
-    }
-
-    const key = `${page.category}/${page.slug}`;
-    generatedBySlug.set(key, effectFromPage(page, syncedAt));
-    results.push({ page, status: "success", reason: key });
-  }
-
-  await writeGeneratedEffects(Array.from(generatedBySlug.values()).sort((a, b) => a.category.localeCompare(b.category) || a.slug.localeCompare(b.slug)));
-  await ensureEffectsRegistryImport();
-
-  for (const result of results) {
-    if (result.status !== "success") continue;
-    try {
-      await updateNotionSuccess(result.page, syncedAt);
-    } catch (error) {
-      result.status = "failed";
-      result.reason = error instanceof Error ? error.message : String(error);
-    }
-  }
-
-  const success = results.filter((result) => result.status === "success");
-  const skipped = results.filter((result) => result.status === "skipped");
-  const failed = results.filter((result) => result.status === "failed");
-
-  console.log(`Synced records: ${success.length}`);
-  console.log(`Skipped records: ${skipped.length}`);
-  console.log(`Failed records: ${failed.length}`);
-  for (const result of [...skipped, ...failed]) {
-    console.log(`- ${result.page.title || result.page.id}: ${result.reason}`);
-  }
+  console.log("Write mode: disabled. Use npm run new-effect and the per-effect folder workflow for final imports.");
 }
 
 main().catch((error: unknown) => {

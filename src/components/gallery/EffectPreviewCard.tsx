@@ -39,6 +39,8 @@ export function EffectPreviewCard({ effect }: EffectPreviewCardProps) {
   const aspectClass =
     effect.category === "navigation"
       ? "aspect-[16/7]"
+      : effect.category === "video-browser"
+        ? "aspect-[16/9]"
       : effect.category === "backgrounds"
         ? "aspect-[16/10]"
         : effect.category === "text"
