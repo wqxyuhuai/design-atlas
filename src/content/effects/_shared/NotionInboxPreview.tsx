@@ -599,6 +599,7 @@ type SpiralShowreelMotionState = {
   target: number;
   current: number;
   speed: number;
+  wheelDirection: 1 | -1;
   pointerX: number;
   pointerY: number;
 };
@@ -722,49 +723,42 @@ function OrbitWebGLGallery({
 const SPIRAL_CARD_VERTEX_SHADER = `
 precision highp float;
 
-uniform float uBend;
-uniform float uSpeed;
+uniform float uScrollSpeed;
 
 varying vec2 vUv;
 
 const float PI = 3.14159265359;
 
 void main() {
+  vec3 worldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+  vec3 newPosition = position;
+  newPosition.z = sin(uv.x * PI) * 0.2;
+
+  vec4 modelPosition = modelMatrix * vec4(newPosition, 1.0);
+  vec4 viewPosition = viewMatrix * modelPosition;
+  viewPosition.x += pow(worldPosition.y, 2.0) * 0.1;
+  viewPosition.x += sin(uv.y * PI) * uScrollSpeed * 2.0;
+
+  gl_Position = projectionMatrix * viewPosition;
   vUv = uv;
-
-  vec3 transformed = position;
-  float edge = uv.x - 0.5;
-  float vertical = uv.y - 0.5;
-  float surface = sin(uv.x * PI) * sin(uv.y * PI);
-  float curl = (1.0 - cos(edge * PI * 2.0)) * 0.5;
-  float drag = clamp(uSpeed, -2.2, 2.2);
-
-  transformed.z += curl * uBend * 1.35;
-  transformed.z += surface * uBend * 0.42;
-  transformed.z += edge * drag * 0.072;
-  transformed.x += sin(edge * PI) * uBend * 0.16;
-  transformed.y += vertical * surface * uBend * 0.22;
-  transformed.y += vertical * edge * drag * 0.035;
-
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(transformed, 1.0);
 }
 `;
 
 const SPIRAL_CARD_FRAGMENT_SHADER = `
 precision highp float;
 
-uniform sampler2D tMap;
-uniform vec2 uImageSizes;
+uniform sampler2D uTexture;
+uniform float uColorStrength;
+uniform float uZoom;
 uniform vec2 uPlaneSizes;
-uniform float uOpacity;
-uniform float uFocus;
-uniform vec3 uTint;
+uniform vec2 uImageSizes;
+uniform float uRevealProgress;
 
 varying vec2 vUv;
 
-float roundedRect(vec2 uv, float radius) {
-  vec2 centered = abs(uv - 0.5) - vec2(0.5 - radius);
-  return length(max(centered, 0.0)) + min(max(centered.x, centered.y), 0.0) - radius;
+float roundedRectSDF(vec2 uv, vec2 size, float radius) {
+  vec2 d = abs(uv - 0.5) - size * 0.5 + radius;
+  return length(max(d, 0.0)) - radius;
 }
 
 void main() {
@@ -773,103 +767,54 @@ void main() {
     min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
   );
 
-  vec2 imageUv = vec2(
+  vec2 uv = vec2(
     vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
     vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
   );
 
-  vec4 image = texture2D(tMap, imageUv);
-  float mask = 1.0 - smoothstep(0.0, 0.018, roundedRect(vUv, 0.045));
-  vec3 color = mix(image.rgb * 0.72, image.rgb, uFocus);
-  color = mix(color, color * uTint + uTint * 0.12, 0.22);
-  gl_FragColor = vec4(color, image.a * mask * uOpacity);
+  vec2 zoomedUv = (uv - 0.5) / uZoom + 0.5;
+  vec4 color;
+
+  if (gl_FrontFacing) {
+    color = texture2D(uTexture, zoomedUv);
+    color = mix(color, vec4(0.0, 0.0, 0.0, 1.0), uColorStrength);
+  } else {
+    float offset = 40.0 / 1024.0;
+    vec4 blurred = vec4(0.0);
+
+    blurred += texture2D(uTexture, uv + vec2(-offset, -offset)) * 1.0;
+    blurred += texture2D(uTexture, uv + vec2(0.0, -offset)) * 2.0;
+    blurred += texture2D(uTexture, uv + vec2(offset, -offset)) * 1.0;
+    blurred += texture2D(uTexture, uv + vec2(-offset, 0.0)) * 2.0;
+    blurred += texture2D(uTexture, uv) * 4.0;
+    blurred += texture2D(uTexture, uv + vec2(offset, 0.0)) * 2.0;
+    blurred += texture2D(uTexture, uv + vec2(-offset, offset)) * 1.0;
+    blurred += texture2D(uTexture, uv + vec2(0.0, offset)) * 2.0;
+    blurred += texture2D(uTexture, uv + vec2(offset, offset)) * 1.0;
+    blurred /= 16.0;
+    color = blurred;
+  }
+
+  float reveal = clamp(uRevealProgress, 0.0, 1.0);
+  float radius = 0.05 * reveal;
+  float sdf = roundedRectSDF(vUv, vec2(reveal), radius);
+  float alpha = 1.0 - smoothstep(0.0, 0.002, sdf);
+  alpha *= smoothstep(0.1, 1.0, uRevealProgress);
+
+  gl_FragColor = vec4(color.rgb, alpha);
 }
 `;
 
-function createSpiralShowreelTexture(index: number) {
-  if (typeof document === "undefined") {
-    const data = new Uint8Array([12, 12, 14, 255]);
-    const texture = new THREE.DataTexture(data, 1, 1);
-    texture.needsUpdate = true;
-    return texture;
-  }
+function useSpiralShowreelTextures(images: PlaceholderImage[]) {
+  const textureUrls = useMemo(() => images.map((image) => image.src), [images]);
+  const textures = useLoader(THREE.TextureLoader, textureUrls);
 
-  const palettes = [
-    ["#f6f1dc", "#1f5bff", "#ff4f89", "#141414"],
-    ["#d7f96b", "#0d0f12", "#4e8cff", "#ff8d45"],
-    ["#f2f0e6", "#101010", "#b4ff6a", "#5b57ff"],
-    ["#fff4d7", "#ef3f2f", "#1c1e24", "#72d6ff"],
-    ["#e7ff88", "#081018", "#ffffff", "#b354ff"],
-    ["#f8f3ea", "#0a0c10", "#ffca44", "#2ee6a6"]
-  ];
-  const palette = palettes[index % palettes.length];
-  const canvas = document.createElement("canvas");
-  canvas.width = 960;
-  canvas.height = 620;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.needsUpdate = true;
-    return texture;
-  }
-
-  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-  gradient.addColorStop(0, palette[0]);
-  gradient.addColorStop(0.48, palette[1]);
-  gradient.addColorStop(1, palette[3]);
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = palette[2];
-  ctx.beginPath();
-  ctx.arc(canvas.width * (0.24 + (index % 3) * 0.12), canvas.height * 0.42, 126 + (index % 4) * 18, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.globalAlpha = 0.78;
-  ctx.fillStyle = palette[3];
-  ctx.save();
-  ctx.translate(canvas.width * 0.64, canvas.height * 0.5);
-  ctx.rotate(((index % 5) - 2) * 0.22);
-  for (let i = 0; i < 7; i += 1) {
-    ctx.fillRect(-240 + i * 72, -250, 42, 520);
-  }
-  ctx.restore();
-
-  ctx.globalAlpha = 0.18;
-  ctx.strokeStyle = "#ffffff";
-  ctx.lineWidth = 2;
-  for (let y = 40; y < canvas.height; y += 42) {
-    ctx.beginPath();
-    ctx.moveTo(0, y + Math.sin(index + y * 0.02) * 18);
-    ctx.bezierCurveTo(canvas.width * 0.32, y - 46, canvas.width * 0.62, y + 58, canvas.width, y - 12);
-    ctx.stroke();
-  }
-
-  ctx.globalAlpha = 0.2;
-  ctx.fillStyle = "#ffffff";
-  ctx.font = "600 18px Inter, Arial, sans-serif";
-  ctx.fillText("Design Atlas / 2026", 58, canvas.height - 38);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 8;
-  texture.minFilter = THREE.LinearMipmapLinearFilter;
-  texture.magFilter = THREE.LinearFilter;
-  texture.needsUpdate = true;
-  return texture;
-}
-
-function useSpiralShowreelTextures(count: number) {
-  const textureCount = Math.max(8, Math.min(count, 22));
-  const textures = useMemo(() => Array.from({ length: textureCount }, (_, index) => createSpiralShowreelTexture(index)), [textureCount]);
-
-  useEffect(() => {
-    return () => {
-      textures.forEach((texture) => texture.dispose());
-    };
-  }, [textures]);
+  textures.forEach((texture) => {
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.anisotropy = 8;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+  });
 
   return textures;
 }
@@ -891,71 +836,60 @@ function SpiralShowreelGallery({
   bend: number;
   autoSpeed: number;
 }) {
-  const textures = useSpiralShowreelTextures(cardCount);
-  const viewport = useThree((state) => state.viewport);
+  const galleryImages = useMemo(() => {
+    const imageCount = Math.max(8, Math.min(cardCount, images.length));
+    const selected = images.slice(0, imageCount);
+    return [...selected, ...selected];
+  }, [cardCount, images]);
+  const textures = useSpiralShowreelTextures(galleryImages);
   const meshRefs = useRef<Array<THREE.Mesh | null>>([]);
   const materialRefs = useRef<Array<THREE.ShaderMaterial | null>>([]);
   const totalCards = textures.length;
+  const centerIndex = Math.floor(totalCards / 2);
+  const planeScale = compact ? 0.74 : 1;
 
   useFrame((_, delta) => {
     const motion = motionRef.current;
-    const damp = 1 - Math.exp(-delta * 7.2);
+    const minWheelSpeed = autoSpeed <= 0 ? 0 : 0.002 * (autoSpeed / 0.72);
     const radiusScale = radius / 42;
-    const baseWidth = viewport.width * (compact ? 0.27 : 0.112);
-    const xRadius = viewport.width * (compact ? 0.2 : 0.145) * radiusScale;
-    const zRadius = (compact ? 2.55 : 3.35) * radiusScale;
-    const verticalSpan = viewport.height * (compact ? 1.04 : 1.14);
-    const pointerX = motion.pointerX * viewport.width * 0.022;
-    const pointerY = motion.pointerY * viewport.height * 0.018;
-    const turns = compact ? 1.06 : 1.16;
+    const baseRadius = 2 * radiusScale;
+    const verticalGap = compact ? 0.38 : 0.5;
+    const angleGap = 0.85;
+    const planeWidth = 1.7 * planeScale;
+    const planeHeight = planeScale;
 
-    motion.target += delta * autoSpeed * (compact ? 0.052 : 0.064);
-    motion.current = THREE.MathUtils.lerp(motion.current, motion.target, damp);
-    motion.speed *= Math.exp(-delta * 4.4);
+    motion.speed += (motion.target - motion.speed) * 0.1;
+    motion.current += motion.speed;
 
-    if (Math.abs(motion.current) > 4) {
-      const wrap = Math.trunc(motion.current);
-      motion.current -= wrap;
-      motion.target -= wrap;
+    if (Math.abs(motion.target) < minWheelSpeed) {
+      motion.target = motion.wheelDirection * minWheelSpeed;
     }
+    motion.target *= 0.9;
 
     meshRefs.current.forEach((mesh, index) => {
       if (!mesh) return;
       const material = materialRefs.current[index];
-      const phase = ((((index / totalCards) - motion.current) % 1) + 1) % 1;
-      const centered = phase > 0.5 ? phase - 1 : phase;
-      const absCentered = Math.abs(centered);
-      const angle = centered * Math.PI * 2 * turns + 0.42 + motion.pointerX * 0.08;
-      const front = (Math.cos(angle) + 1) * 0.5;
-      const centerFocus = THREE.MathUtils.clamp(1 - absCentered * 2.25, 0, 1);
-      const focus = THREE.MathUtils.clamp(front * 0.72 + centerFocus * 0.42, 0, 1);
-      const width = baseWidth * (0.72 + focus * 0.76) * (index % 6 === 2 ? 0.92 : 1);
-      const ratio = index % 5 === 1 ? 0.86 : index % 4 === 2 ? 0.62 : 0.72;
-      const height = width * ratio;
-      const diagonalX = -centered * viewport.width * (compact ? 0.16 : 0.19);
-      const x = Math.sin(angle) * xRadius + diagonalX + pointerX;
-      const y = -centered * verticalSpan + Math.sin(angle * 0.62 + index * 0.18) * viewport.height * 0.055 + pointerY;
-      const z = Math.cos(angle) * zRadius - absCentered * 1.15;
-      const edgeFade = THREE.MathUtils.clamp(1 - Math.max(absCentered - 0.43, 0) * 4.2, 0, 1);
-      const opacity = THREE.MathUtils.clamp((0.34 + focus * 0.64) * edgeFade, 0, 0.98);
-      const speedBend = THREE.MathUtils.clamp(Math.abs(motion.speed) * 0.12, 0, 0.28);
+      const wrappedIndex = (((index - motion.current) % totalCards) + totalCards) % totalCards;
+      const centeredIndex = wrappedIndex - centerIndex;
+      const angle = centeredIndex * angleGap + motion.pointerX * 0.015;
+      const hiddenScale = 1;
+      const x = Math.cos(angle) * baseRadius + motion.pointerX * 0.04;
+      const y = centeredIndex * verticalGap - 0.8 + motion.pointerY * 0.03;
+      const z = Math.sin(angle) * baseRadius;
+      const reveal = THREE.MathUtils.clamp(1 - Math.max(Math.abs(centeredIndex) - centerIndex * 0.9, 0) * 0.2, 0, 1);
 
       mesh.position.set(x, y, z);
-      mesh.rotation.set(
-        THREE.MathUtils.degToRad((motion.pointerY * -2.5 + motion.speed * 1.8) * (bend / 28)),
-        -angle + motion.pointerX * 0.06,
-        THREE.MathUtils.degToRad(Math.sin(angle) * 2.2)
-      );
-      mesh.scale.set(width, height, 1);
-      mesh.renderOrder = Math.round(focus * 1000) + index;
-      mesh.visible = opacity > 0.025;
+      mesh.rotation.set(0, -angle + Math.PI / 2, 0);
+      mesh.scale.set(planeWidth * hiddenScale, planeHeight * hiddenScale, 1);
+      mesh.renderOrder = Math.round((z + 3) * 1000) + index;
+      mesh.visible = reveal > 0.02;
 
       if (material) {
-        material.uniforms.uPlaneSizes.value.set(width, height);
-        material.uniforms.uOpacity.value = opacity;
-        material.uniforms.uFocus.value = focus;
-        material.uniforms.uBend.value = 0.14 * (bend / 28) + speedBend;
-        material.uniforms.uSpeed.value = motion.speed;
+        material.uniforms.uPlaneSizes.value.set(planeWidth, planeHeight);
+        material.uniforms.uColorStrength.value = 0;
+        material.uniforms.uZoom.value = 1;
+        material.uniforms.uRevealProgress.value = reveal;
+        material.uniforms.uScrollSpeed.value = THREE.MathUtils.clamp(motion.speed * (bend / 28), -0.75, 0.75);
       }
     });
   });
@@ -975,20 +909,19 @@ function SpiralShowreelGallery({
               materialRefs.current[index] = node;
             }}
             uniforms={{
-              tMap: { value: texture },
-              uPlaneSizes: { value: new THREE.Vector2(1, 1) },
+              uTexture: { value: texture },
+              uColorStrength: { value: 0 },
+              uZoom: { value: 1 },
+              uPlaneSizes: { value: new THREE.Vector2(1.7 * planeScale, planeScale) },
               uImageSizes: { value: new THREE.Vector2(texture.image?.width ?? 1, texture.image?.height ?? 1) },
-              uOpacity: { value: 1 },
-              uFocus: { value: 0 },
-              uBend: { value: 0.04 },
-              uSpeed: { value: 0 },
-              uTint: { value: new THREE.Vector3(0.72, 0.9, 1.08) }
+              uRevealProgress: { value: 1 },
+              uScrollSpeed: { value: 0 }
             }}
             vertexShader={SPIRAL_CARD_VERTEX_SHADER}
             fragmentShader={SPIRAL_CARD_FRAGMENT_SHADER}
             transparent
             depthWrite={false}
-            depthTest={false}
+            depthTest
             side={THREE.DoubleSide}
           />
         </mesh>
@@ -1336,7 +1269,14 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
   const compact = mode === "card";
   const menuImages = images(4, 0);
   const spiralStageRef = useRef<HTMLDivElement>(null);
-  const spiralMotionRef = useRef<SpiralShowreelMotionState>({ target: 0, current: 0, speed: 0, pointerX: 0, pointerY: 0 });
+  const spiralMotionRef = useRef<SpiralShowreelMotionState>({
+    target: 0,
+    current: 0,
+    speed: 0,
+    wheelDirection: 1,
+    pointerX: 0,
+    pointerY: 0
+  });
   const orbitStageRef = useRef<HTMLDivElement>(null);
   const orbitWebglMotionRef = useRef<OrbitGalleryMotionState>({
     currentY: 0,
@@ -1353,17 +1293,16 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
   const orbitParallaxValue = numberValue(props, "pointerParallax", compact ? 10 : 24);
   const curveDepthValue = numberValue(props, "curveDepth", compact ? 34 : 62);
   const curveBendValue = numberValue(props, "bendStrength", compact ? 22 : 34);
-  const spiralCardCount = Math.round(numberValue(props, "cardCount", compact ? 9 : 12));
+  const spiralCardCount = Math.round(numberValue(props, "cardCount", compact ? 12 : 20));
   const spiralRadius = numberValue(props, "radius", compact ? 34 : 42);
   const spiralBend = numberValue(props, "bend", compact ? 20 : 28);
   const spiralAutoSpeed = numberValue(props, "autoSpeed", compact ? 0.52 : 0.72);
 
   const applySpiralWheelDelta = useCallback((delta: number) => {
     const motionState = spiralMotionRef.current;
-    const scrollDelta = delta * (compact ? 0.0008 : 0.00062);
-    motionState.target += scrollDelta;
-    motionState.speed = THREE.MathUtils.clamp(motionState.speed + scrollDelta * 9, -2.4, 2.4);
-  }, [compact]);
+    motionState.target = THREE.MathUtils.clamp(motionState.target + delta * 0.00015, -2, 2);
+    motionState.wheelDirection = delta > 0 ? 1 : -1;
+  }, []);
 
   const handleSpiralPointer = (event: MouseEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -1478,7 +1417,7 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
   } as CSSProperties;
 
   if (renderer === "spiral-showreel-gallery") {
-    const spiralImages = images(spiralCardCount, 2);
+    const spiralImages = images(spiralCardCount, 0);
 
     return (
       <div
@@ -1489,7 +1428,7 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
       >
         <Canvas
           className="notion-rb-spiral-showreel-canvas"
-          camera={{ position: [0, 0, compact ? 7.8 : 7.2], fov: compact ? 38 : 34, near: 0.1, far: 80 }}
+          camera={{ position: [0, 0, 8], fov: compact ? 45 : 35, near: 0.1, far: 100 }}
           dpr={[1, 2]}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         >
@@ -1505,27 +1444,6 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
             />
           </Suspense>
         </Canvas>
-        <div className="notion-rb-spiral-grid" aria-hidden="true" />
-        <div className="notion-rb-spiral-logo" aria-hidden="true">
-          DA
-        </div>
-        <div className="notion-rb-spiral-switch" aria-hidden="true">
-          <strong>spiral</strong>
-          <span />
-          <em>list</em>
-        </div>
-        <div className="notion-rb-spiral-menu" aria-hidden="true">
-          menu <span />
-        </div>
-        <div className="notion-rb-spiral-showreel-card" aria-hidden="true">
-          <img src={spiralImages[0].src} alt="" />
-          <div className="notion-rb-spiral-marquee">
-            showreel / 2026 / showreel / 2026
-          </div>
-        </div>
-        <div className="notion-rb-spiral-sound" aria-hidden="true">
-          sound
-        </div>
       </div>
     );
   }
@@ -1650,29 +1568,7 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
             />
           </Suspense>
         </Canvas>
-        <div className="notion-rb-infinite-frame">
-          <div className="notion-rb-infinite-frame-top-left">
-            <span>Source</span>
-            <span>GitHub</span>
-            <span>All demos</span>
-          </div>
-          <div className="notion-rb-infinite-frame-top-right">By Design Atlas</div>
-          <div className="notion-rb-infinite-frame-bottom-left">
-            <span>#scroll</span>
-            <span>#infinite</span>
-            <span>#draggable</span>
-            <span>#three.js</span>
-            <span>#webgl</span>
-          </div>
-          <div className="notion-rb-infinite-frame-bottom-right">
-            With Design Atlas, nothing stands between your ideas and the final result
-          </div>
-        </div>
         <div className="notion-rb-infinite-title">Infinite Canvas</div>
-        <div className="notion-rb-canvas-hud">
-          <span>Infinite Canvas</span>
-          <strong>Collected works in 3D space.</strong>
-        </div>
       </div>
     );
   }

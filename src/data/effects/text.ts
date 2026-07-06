@@ -1,5 +1,4 @@
 import { decryptedTextEffect } from "../../content/effects/text/decrypted-text";
-import { liquidTypographyLinkEffect } from "../../content/effects/text/liquid-typography-link";
 import { rotatingTextEffect } from "../../content/effects/text/rotating-text";
 import { shinyTextEffect } from "../../content/effects/text/shiny-text";
 import { shuffleEffect } from "../../content/effects/text/shuffle";
@@ -12,7 +11,6 @@ import type { DesignEffect } from "../../types/effect";
 
 export const textEffects: DesignEffect[] = [
   textRevealEffect,
-  liquidTypographyLinkEffect,
   shinyTextEffect,
   shuffleEffect,
   textPressureEffect,

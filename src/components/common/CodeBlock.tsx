@@ -17,9 +17,9 @@ export function CodeBlock({
   showCopy = false
 }: CodeBlockProps) {
   return (
-    <div className="relative overflow-hidden rounded-[16px] bg-[#0f1011]">
+    <div className="relative min-w-0 overflow-hidden rounded-[16px] bg-[#0f1011]">
       <div
-        className={clsx(maxHeight ? "overflow-auto" : undefined)}
+        className={clsx("min-w-0 rounded-[inherit]", maxHeight ? "overflow-auto" : undefined)}
         style={maxHeight ? { maxHeight } : undefined}
       >
         <SyntaxHighlighter
@@ -27,6 +27,10 @@ export function CodeBlock({
           style={coldarkDark}
           customStyle={{
             margin: 0,
+            width: "100%",
+            maxWidth: "100%",
+            boxSizing: "border-box",
+            overflowX: "auto",
             background: "#0f1011",
             padding: showCopy ? "56px 16px 18px" : "18px 16px",
             borderRadius: "16px",

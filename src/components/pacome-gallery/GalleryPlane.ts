@@ -1,8 +1,11 @@
 import * as THREE from "three";
 import type { GalleryProject } from "./galleryData";
-import { clamp, mixSlot, type GallerySlot, type ViewportSize } from "./galleryMath";
+import { mixSlot, type GallerySlot } from "./galleryMath";
 import vertexShader from "./shaders/galleryPlane.vert?raw";
 import fragmentShader from "./shaders/galleryPlane.frag?raw";
+
+const PLANE_WIDTH = 1.7;
+const PLANE_HEIGHT = 1;
 
 export class GalleryPlane {
   readonly geometry: THREE.PlaneGeometry;
@@ -22,22 +25,20 @@ export class GalleryPlane {
     const naturalHeight = image?.naturalHeight ?? image?.height ?? imageHeight;
     this.imageAspect = naturalWidth / naturalHeight;
     this.displayAspect = imageWidth / imageHeight;
-    this.geometry = new THREE.PlaneGeometry(1, 1, 32, 18);
+    this.geometry = new THREE.PlaneGeometry(1, 1, 8, 8);
     this.material = new THREE.ShaderMaterial({
       uniforms: {
         uTexture: { value: texture },
-        uImageSize: { value: new THREE.Vector2(naturalWidth, naturalHeight) },
-        uPlaneSize: { value: new THREE.Vector2(1, 1) },
-        uOpacity: { value: 0 },
-        uRadius: { value: 0.045 },
-        uBend: { value: 0.12 },
-        uVelocity: { value: new THREE.Vector2(0, 0) }
+        uColorStrength: { value: 0 },
+        uZoom: { value: 1 },
+        uPlaneSizes: { value: new THREE.Vector2(PLANE_WIDTH, PLANE_HEIGHT) },
+        uImageSizes: { value: new THREE.Vector2(naturalWidth, naturalHeight) },
+        uRevealProgress: { value: 0 },
+        uScrollSpeed: { value: 0 }
       },
       vertexShader,
       fragmentShader,
       transparent: true,
-      depthTest: true,
-      depthWrite: false,
       side: THREE.DoubleSide
     });
     this.mesh = new THREE.Mesh(this.geometry, this.material);
@@ -49,50 +50,33 @@ export class GalleryPlane {
     spiralSlot,
     listSlot,
     modeMix,
-    viewport,
     velocity,
     index
   }: {
     spiralSlot: GallerySlot;
     listSlot: GallerySlot;
     modeMix: number;
-    viewport: ViewportSize;
     velocity: number;
     index: number;
   }) {
     const slot = mixSlot(spiralSlot, listSlot, modeMix);
     const intro = this.introProgress;
-    const baseWidth = clamp(viewport.width * 0.18, 1.25, 3.2);
-    let planeWidth = baseWidth;
-    let planeHeight = planeWidth / this.displayAspect;
-
-    if (planeHeight > 2.6) {
-      planeHeight = 2.6;
-      planeWidth = planeHeight * this.displayAspect;
-    }
-    if (planeHeight < 0.8) {
-      planeHeight = 0.8;
-      planeWidth = planeHeight * this.displayAspect;
-    }
-
     const introOffset = 1 - intro;
-    const scale = slot.s * (0.72 + intro * 0.28);
-    const x = slot.x * viewport.width + introOffset * (index % 2 === 0 ? -0.9 : 0.9);
-    const y = slot.y * viewport.height + introOffset * (index % 3 === 0 ? 0.8 : -0.7);
-    const z = slot.z - introOffset * 3.4;
+    const scale = slot.s * (0.76 + intro * 0.24);
+    const x = slot.x + introOffset * (index % 2 === 0 ? -0.6 : 0.6);
+    const y = slot.y + introOffset * (index % 3 === 0 ? 0.8 : -0.7);
+    const z = slot.z - introOffset * 2.8;
     const opacity = slot.opacity * intro;
-    const velocityBend = Math.min(Math.abs(velocity) * 1.8, 0.25);
-    const v = THREE.MathUtils.clamp(velocity * 6, -1, 1);
+    const scrollSpeed = THREE.MathUtils.clamp(velocity, -0.75, 0.75);
 
     this.mesh.position.set(x, y, z);
     this.mesh.rotation.set(slot.rx, slot.ry, slot.rz);
-    this.mesh.scale.set(planeWidth * scale, planeHeight * scale, 1);
-    this.mesh.renderOrder = Math.round((slot.z + 3) * 100) + index;
+    this.mesh.scale.set(PLANE_WIDTH * scale, PLANE_HEIGHT * scale, 1);
+    this.mesh.renderOrder = Math.round((slot.z + 3) * 1000) + index;
 
-    this.material.uniforms.uPlaneSize.value.set(planeWidth, planeHeight);
-    this.material.uniforms.uOpacity.value = opacity;
-    this.material.uniforms.uBend.value = slot.bend + velocityBend;
-    this.material.uniforms.uVelocity.value.set(v, v * 0.35);
+    this.material.uniforms.uPlaneSizes.value.set(PLANE_WIDTH, PLANE_HEIGHT);
+    this.material.uniforms.uRevealProgress.value = opacity;
+    this.material.uniforms.uScrollSpeed.value = scrollSpeed;
   }
 
   dispose() {

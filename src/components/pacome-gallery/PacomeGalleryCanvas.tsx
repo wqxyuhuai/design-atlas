@@ -3,11 +3,9 @@ import gsap from "gsap";
 import * as THREE from "three";
 import { GalleryPlane } from "./GalleryPlane";
 import type { GalleryProject } from "./galleryData";
-import { getViewport, listSlotAt, spiralSlotAt } from "./galleryMath";
+import { listSlotAt, spiralSlotAt } from "./galleryMath";
 import type { GalleryMode } from "./PacomeGalleryUI";
 import type { VirtualScrollState } from "./useVirtualScroll";
-
-const LERP = 0.075;
 
 export function PacomeGalleryCanvas({
   projects,
@@ -84,11 +82,6 @@ export function PacomeGalleryCanvas({
       if (document.hidden) return;
 
       const scroll = scrollRef.current;
-      const previous = scroll.current;
-      scroll.current += (scroll.target - scroll.current) * LERP;
-      scroll.velocity = scroll.current - previous;
-
-      const viewport = getViewport(camera, 0);
       planes.forEach((plane, index) => {
         const spiralSlot = spiralSlotAt(index, planes.length, scroll.current);
         const listSlot = listSlotAt(index, planes.length, scroll.current);
@@ -96,7 +89,6 @@ export function PacomeGalleryCanvas({
           spiralSlot,
           listSlot,
           modeMix: stateRef.current.modeMix,
-          viewport,
           velocity: scroll.velocity,
           index
         });
@@ -105,8 +97,10 @@ export function PacomeGalleryCanvas({
       renderer.render(scene, camera);
     };
 
+    const galleryItems = [...projects, ...projects];
+
     Promise.all(
-      projects.map((project) =>
+      galleryItems.map((project) =>
         loader.loadAsync(project.image).then((texture) => {
           texture.colorSpace = THREE.SRGBColorSpace;
           texture.anisotropy = 8;

@@ -62,6 +62,7 @@ export function SourceCodePanel({ effect }: SourceCodePanelProps) {
         <CodeBlock
           code={activeFile.code}
           language={activeFile.language}
+          maxHeight={420}
         />
       </div>
     </section>

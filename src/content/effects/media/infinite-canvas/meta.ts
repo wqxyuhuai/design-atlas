@@ -19,7 +19,7 @@ export const infiniteCanvasEffect = createImportedEffect({
     category: "media",
     sourceUrl: "https://tympanus.net/Tutorials/InfiniteCanvas/",
     description: "Large draggable-feeling media board with tiled images drifting across an infinite canvas.\nsource: https://tympanus.net/Tutorials/InfiniteCanvas/",
-    visualStyle: "A pale WebGL space where upright artwork planes float around a clear central title under a minimal difference-blend frame.",
+    visualStyle: "A pale WebGL space where upright artwork planes float around a clear central title.",
     motionLogic: "Uses a React Three Fiber scene with deterministic chunked artwork planes, drag-to-pan velocity, unbounded wheel-driven depth travel, fog depth, and distance-based fading.",
     defaultProps: withRendererProps("infinite-canvas", {
       tileCount: 24,

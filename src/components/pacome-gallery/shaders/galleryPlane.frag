@@ -1,23 +1,23 @@
 varying vec2 vUv;
 
 uniform sampler2D uTexture;
-uniform vec2 uImageSize;
-uniform vec2 uPlaneSize;
-uniform float uOpacity;
-uniform float uRadius;
-uniform vec2 uVelocity;
+uniform float uColorStrength;
+uniform float uZoom;
+uniform vec2 uPlaneSizes;
+uniform vec2 uImageSizes;
+uniform float uRevealProgress;
 
-float roundedBoxSDF(vec2 centerPosition, vec2 size, float radius) {
-  return length(max(abs(centerPosition) - size + radius, 0.0)) - radius;
+float roundedRectSDF(vec2 uv, vec2 size, float radius) {
+  vec2 d = abs(uv - 0.5) - size * 0.5 + radius;
+  return length(max(d, 0.0)) - radius;
 }
 
 vec2 coverUv(vec2 uv) {
-  float planeAspect = uPlaneSize.x / uPlaneSize.y;
-  float imageAspect = uImageSize.x / uImageSize.y;
   vec2 ratio = vec2(
-    min(planeAspect / imageAspect, 1.0),
-    min(imageAspect / planeAspect, 1.0)
+    min((uPlaneSizes.x / uPlaneSizes.y) / (uImageSizes.x / uImageSizes.y), 1.0),
+    min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
   );
+
   return vec2(
     uv.x * ratio.x + (1.0 - ratio.x) * 0.5,
     uv.y * ratio.y + (1.0 - ratio.y) * 0.5
@@ -26,18 +26,35 @@ vec2 coverUv(vec2 uv) {
 
 void main() {
   vec2 uv = coverUv(vUv);
-  vec2 velocity = uVelocity * 0.018;
+  vec2 zoomedUv = (uv - 0.5) / uZoom + 0.5;
+  vec4 color;
 
-  vec4 color = vec4(0.0);
-  color += texture2D(uTexture, clamp(uv - velocity * 2.0, 0.001, 0.999)) * 0.12;
-  color += texture2D(uTexture, clamp(uv - velocity, 0.001, 0.999)) * 0.18;
-  color += texture2D(uTexture, uv) * 0.40;
-  color += texture2D(uTexture, clamp(uv + velocity, 0.001, 0.999)) * 0.18;
-  color += texture2D(uTexture, clamp(uv + velocity * 2.0, 0.001, 0.999)) * 0.12;
-  color.rgb = clamp(pow(color.rgb, vec3(0.86)) * 1.08, 0.0, 1.0);
+  if (gl_FrontFacing) {
+    color = texture2D(uTexture, zoomedUv);
+    color = mix(color, vec4(0.0, 0.0, 0.0, 1.0), uColorStrength);
+  } else {
+    float offset = 40.0 / 1024.0;
+    vec4 blurred = vec4(0.0);
 
-  float distance = roundedBoxSDF(vUv - 0.5, vec2(0.5), uRadius);
-  float alpha = 1.0 - smoothstep(0.0, 0.005, distance);
+    blurred += texture2D(uTexture, uv + vec2(-offset, -offset)) * 1.0;
+    blurred += texture2D(uTexture, uv + vec2(0.0, -offset)) * 2.0;
+    blurred += texture2D(uTexture, uv + vec2(offset, -offset)) * 1.0;
+    blurred += texture2D(uTexture, uv + vec2(-offset, 0.0)) * 2.0;
+    blurred += texture2D(uTexture, uv) * 4.0;
+    blurred += texture2D(uTexture, uv + vec2(offset, 0.0)) * 2.0;
+    blurred += texture2D(uTexture, uv + vec2(-offset, offset)) * 1.0;
+    blurred += texture2D(uTexture, uv + vec2(0.0, offset)) * 2.0;
+    blurred += texture2D(uTexture, uv + vec2(offset, offset)) * 1.0;
+    blurred /= 16.0;
 
-  gl_FragColor = vec4(color.rgb, color.a * alpha * uOpacity);
+    color = blurred;
+  }
+
+  float reveal = clamp(uRevealProgress, 0.0, 1.0);
+  float radius = 0.05 * reveal;
+  float sdf = roundedRectSDF(vUv, vec2(reveal), radius);
+  float alpha = 1.0 - smoothstep(0.0, 0.002, sdf);
+  alpha *= smoothstep(0.1, 1.0, uRevealProgress);
+
+  gl_FragColor = vec4(color.rgb, alpha);
 }
