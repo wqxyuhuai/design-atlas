@@ -366,15 +366,16 @@ const CURVED_VERTEX_SHADER = `
     float direction = normalized < 0.0 ? -1.0 : 1.0;
 
     vec3 transformed = position;
-    float speed = clamp(uSpeedY * 0.18, -1.0, 1.0);
-    float verticalPhase = (uv.y - 0.5) * PI;
-    float scrollBend = sin(verticalPhase) * speed * uBendStrength * 0.018;
+    float speed = clamp(uSpeedY * 0.54, -1.55, 1.55);
+    float bendScale = uBendStrength / 34.0;
+    float verticalWave = sin((uv.y + 0.08) * 2.18) * 0.42;
+    float scrollBend = verticalWave * speed * bendScale;
     float centerWeight = 1.0 - smoothstep(0.0, 0.58, absNormalized);
     float faceProgress = smoothstep(0.05, 1.0, absNormalized);
     float yaw = direction * mix(PI * 0.47, PI * 0.08, faceProgress);
 
-    yaw += scrollBend * (0.8 - absNormalized * 0.35);
-    transformed.z += scrollBend * 0.08;
+    yaw += scrollBend * 0.16 * (0.75 - absNormalized * 0.28);
+    transformed.z -= scrollBend * 0.62;
 
     transformed = rotateY(yaw) * transformed;
 
