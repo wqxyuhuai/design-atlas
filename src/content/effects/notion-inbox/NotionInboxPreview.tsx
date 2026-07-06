@@ -570,7 +570,7 @@ function CurvedWebGLGallery({
     const motion = motionRef.current;
     const ease = 1 - Math.exp(-delta * 8.4);
     motion.current = THREE.MathUtils.lerp(motion.current, motion.target, ease);
-    motion.speed *= Math.exp(-delta * 9.2);
+    motion.speed *= Math.exp(-delta * 5.8);
 
     material.uniforms.uScrollY.value = motion.current;
     material.uniforms.uSpeedY.value = motion.speed;
@@ -1070,7 +1070,7 @@ function MediaPreview({ props, renderer, mode }: { props: EffectProps; renderer:
     const motionState = curveVisualRef.current;
     const scrollDelta = delta * (compact ? 0.006 : 0.0052);
     motionState.target += scrollDelta;
-    motionState.speed += scrollDelta;
+    motionState.speed = THREE.MathUtils.clamp(motionState.speed + scrollDelta * 1.8, -3.2, 3.2);
   }, [compact]);
 
   const handleCurvePointer = (event: MouseEvent<HTMLDivElement>) => {
