@@ -1,0 +1,222 @@
+[
+  {
+    "slug": "01_school_of_athens_raphael",
+    "title": "The School of Athens",
+    "artist": "Raphael",
+    "file": "\"The School of Athens\" by Raffaello Sanzio da Urbino.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/%22The%20School%20of%20Athens%22%20by%20Raffaello%20Sanzio%20da%20Urbino.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "02_las_meninas_velazquez",
+    "title": "Las Meninas",
+    "artist": "Diego Velázquez",
+    "file": "Las Meninas, by Diego Velázquez, from Prado in Google Earth.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Las%20Meninas%2C%20by%20Diego%20Vel%C3%A1zquez%2C%20from%20Prado%20in%20Google%20Earth.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "03_garden_of_earthly_delights_bosch",
+    "title": "The Garden of Earthly Delights",
+    "artist": "Hieronymus Bosch",
+    "file": "The Garden of Earthly Delights by Bosch High Resolution.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Garden%20of%20Earthly%20Delights%20by%20Bosch%20High%20Resolution.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "04_the_kiss_klimt",
+    "title": "The Kiss",
+    "artist": "Gustav Klimt",
+    "file": "Gustav Klimt 016.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Gustav%20Klimt%20016.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "05_the_scream_munch",
+    "title": "The Scream",
+    "artist": "Edvard Munch",
+    "file": "Edvard Munch - The Scream - Google Art Project.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Edvard%20Munch%20-%20The%20Scream%20-%20Google%20Art%20Project.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "06_impression_sunrise_monet",
+    "title": "Impression, Sunrise",
+    "artist": "Claude Monet",
+    "file": "Claude Monet, Impression, soleil levant.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Claude%20Monet%2C%20Impression%2C%20soleil%20levant.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "07_the_swing_fragonard",
+    "title": "The Swing",
+    "artist": "Jean-Honoré Fragonard",
+    "file": "Fragonard, The Swing.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Fragonard%2C%20The%20Swing.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "08_liberty_leading_the_people_delacroix",
+    "title": "Liberty Leading the People",
+    "artist": "Eugène Delacroix",
+    "file": "Eugène Delacroix - La liberté guidant le peuple.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Eug%C3%A8ne%20Delacroix%20-%20La%20libert%C3%A9%20guidant%20le%20peuple.jpg?width=1600",
+    "status": "skipped_existing"
+  },
+  {
+    "slug": "09_wanderer_above_the_sea_of_fog_friedrich",
+    "title": "Wanderer above the Sea of Fog",
+    "artist": "Caspar David Friedrich",
+    "file": "Caspar David Friedrich - Wanderer above the Sea of Fog.jpeg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Caspar%20David%20Friedrich%20-%20Wanderer%20above%20the%20Sea%20of%20Fog.jpeg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Caspar%20David%20Friedrich%20-%20Wanderer%20above%20the%20Sea%20of%20Fog.jpeg?width=1600",
+    "output_size": [
+      1247,
+      1600
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "10_fighting_temeraire_turner",
+    "title": "The Fighting Temeraire",
+    "artist": "J. M. W. Turner",
+    "file": "The Fighting Temeraire, JMW Turner, National Gallery.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Fighting%20Temeraire%2C%20JMW%20Turner%2C%20National%20Gallery.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Fighting%20Temeraire%2C%20JMW%20Turner%2C%20National%20Gallery.jpg?width=1600",
+    "output_size": [
+      1600,
+      1188
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "11_whistlers_mother",
+    "title": "Whistler's Mother",
+    "artist": "James McNeill Whistler",
+    "file": "Whistlers Mother high res.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Whistlers%20Mother%20high%20res.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Whistlers%20Mother%20high%20res.jpg?width=1600",
+    "output_size": [
+      1600,
+      1423
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "12_the_gleaners_millet",
+    "title": "The Gleaners",
+    "artist": "Jean-François Millet",
+    "file": "Jean-François Millet (II) - Gleaners - Google Art Project 2.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jean-Fran%C3%A7ois%20Millet%20%28II%29%20-%20Gleaners%20-%20Google%20Art%20Project%202.jpg?width=1600",
+    "downloaded_url": "https://upload.wikimedia.org/wikipedia/commons/5/58/Jean-Fran%C3%A7ois_Millet_%28II%29_-_The_Gleaners_-_WGA15691.jpg",
+    "output_size": [
+      1328,
+      1000
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "13_luncheon_boating_party_renoir",
+    "title": "Luncheon of the Boating Party",
+    "artist": "Pierre-Auguste Renoir",
+    "file": "Pierre-Auguste Renoir - Luncheon of the Boating Party - Google Art Project.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pierre-Auguste%20Renoir%20-%20Luncheon%20of%20the%20Boating%20Party%20-%20Google%20Art%20Project.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pierre-Auguste%20Renoir%20-%20Luncheon%20of%20the%20Boating%20Party%20-%20Google%20Art%20Project.jpg?width=1600",
+    "output_size": [
+      1600,
+      1185
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "14_moulin_de_la_galette_renoir",
+    "title": "Dance at Le Moulin de la Galette",
+    "artist": "Pierre-Auguste Renoir",
+    "file": "Pierre-Auguste Renoir, Le Moulin de la Galette.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pierre-Auguste%20Renoir%2C%20Le%20Moulin%20de%20la%20Galette.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pierre-Auguste%20Renoir%2C%20Le%20Moulin%20de%20la%20Galette.jpg?width=1600",
+    "output_size": [
+      1600,
+      1191
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "15_sunday_afternoon_seurat",
+    "title": "A Sunday Afternoon on the Island of La Grande Jatte",
+    "artist": "Georges Seurat",
+    "file": "Georges Seurat - A Sunday on La Grande Jatte -- 1884 - Google Art Project.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Georges%20Seurat%20-%20A%20Sunday%20on%20La%20Grande%20Jatte%20--%201884%20-%20Google%20Art%20Project.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Georges%20Seurat%20-%20A%20Sunday%20on%20La%20Grande%20Jatte%20--%201884%20-%20Google%20Art%20Project.jpg?width=1600",
+    "output_size": [
+      1600,
+      1065
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "16_irises_van_gogh",
+    "title": "Irises",
+    "artist": "Vincent van Gogh",
+    "file": "Van Gogh - Irises.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Van%20Gogh%20-%20Irises.jpg?width=1600",
+    "downloaded_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3e/Irises-Vincent_van_Gogh.jpg/1920px-Irises-Vincent_van_Gogh.jpg",
+    "output_size": [
+      1600,
+      1222
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "17_cafe_terrace_at_night_van_gogh",
+    "title": "Café Terrace at Night",
+    "artist": "Vincent van Gogh",
+    "file": "Vincent van Gogh - Cafe Terrace at Night.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Vincent%20van%20Gogh%20-%20Cafe%20Terrace%20at%20Night.jpg?width=1600",
+    "downloaded_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Terrace_of_a_Caf%C3%A9_at_Night_%28Place_du_Forum%29_%28JH_1580%29_-_My_Dream.jpg/1920px-Terrace_of_a_Caf%C3%A9_at_Night_%28Place_du_Forum%29_%28JH_1580%29_-_My_Dream.jpg",
+    "output_size": [
+      1284,
+      1600
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "18_the_hay_wain_constable",
+    "title": "The Hay Wain",
+    "artist": "John Constable",
+    "file": "John Constable - The Hay Wain (1821).jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/John%20Constable%20-%20The%20Hay%20Wain%20%281821%29.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/John%20Constable%20-%20The%20Hay%20Wain%20%281821%29.jpg?width=1600",
+    "output_size": [
+      1600,
+      1103
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "19_arnolfini_portrait_van_eyck",
+    "title": "The Arnolfini Portrait",
+    "artist": "Jan van Eyck",
+    "file": "Van Eyck - Arnolfini Portrait.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Van%20Eyck%20-%20Arnolfini%20Portrait.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Van%20Eyck%20-%20Arnolfini%20Portrait.jpg?width=1600",
+    "output_size": [
+      1169,
+      1600
+    ],
+    "status": "ok"
+  },
+  {
+    "slug": "20_the_milkmaid_vermeer",
+    "title": "The Milkmaid",
+    "artist": "Johannes Vermeer",
+    "file": "Johannes Vermeer - Het melkmeisje - Google Art Project.jpg",
+    "special_file_path_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Johannes%20Vermeer%20-%20Het%20melkmeisje%20-%20Google%20Art%20Project.jpg?width=1600",
+    "downloaded_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Johannes%20Vermeer%20-%20Het%20melkmeisje%20-%20Google%20Art%20Project.jpg?width=1600",
+    "output_size": [
+      1426,
+      1600
+    ],
+    "status": "ok"
+  }
+]

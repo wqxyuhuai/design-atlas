@@ -1,0 +1,15 @@
+node_modules/
+dist/
+artifacts/
+.tmp-video-review/
+.env
+.env.local
+*.local
+*.tsbuildinfo
+*.err.log
+npm-debug.log*
+dev-server*.log
+vite-verify*.log
+vite-dev*.log
+yarn-debug.log*
+yarn-error.log*
